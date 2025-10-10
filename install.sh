@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # --- CONFIGURACIÓN QUE USTED DEBE DEFINIR ---
-GIT_REPO="https://github.com/su-usuario/wrapper-amqp.git" # O la URL de su servidor
+GIT_REPO="https://github.com/DavidVidaurre/id-printer-wrapper.git" # O la URL de su servidor
 VERSION_TAG="v1.0.0" # La etiqueta de la versión estable
 SERVICE_NAME="wrapper-amqp"
 INSTALL_DIR="/opt/$SERVICE_NAME"
