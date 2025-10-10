@@ -1,0 +1,21 @@
+{
+  "name": "poc-printer-management-amqp",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "amqp-connection-manager": "^5.0.0",
+    "amqplib": "^0.10.9",
+    "dotenv": "^17.2.2",
+    "iconv-lite": "^0.7.0",
+    "pino": "^9.11.0",
+    "pino-pretty": "^13.1.1"
+  }
+}
