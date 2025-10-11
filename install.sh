@@ -17,11 +17,11 @@ echo "=========================================================="
 echo "          Instalador del Wrapper AMQP V$VERSION_TAG        "
 echo "=========================================================="
 
-# 1. PIDE EL ÚNICO VALOR REQUERIDO AL CLIENTE
-read -p "🚨 Por favor, introduzca el ID de la tienda (STORE_ID): " STORE_ID
+# 1. OBTENER EL STORE_ID DEL ARGUMENTO
+STORE_ID="$1" # El primer argumento pasado al script (el STORE_ID)
 
 if [ -z "$STORE_ID" ]; then
-    echo "❌ El STORE_ID no puede estar vacío. Abortando."
+    echo "❌ El STORE_ID no puede estar vacío. Abortando. (Uso: curl ... | sudo bash -s -- [STORE_ID])"
     exit 1
 fi
 
