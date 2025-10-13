@@ -16,7 +16,7 @@ StandardError=journal
 # El cliente NO necesita saber/tocar estos valores.
 Environment="AMQP_URL=amqps://pmifhbub:YivJXUIet_N2gifb8b5nc05OCjWIgile@possum.lmq.cloudamqp.com/pmifhbub"
 Environment="POS_API_URL=https://api.idbi.pe/api/v6"
-Environment="RB_SERVICE_URL=http://localhost:50051"
+Environment="RB_SERVICE_URL=http://localhost:50051/v1"
 Environment="PRINTER_WRAPPER_TOKEN=2b4ac8fb6e29de70b0032b83d5cbfae9b51c6a9f7451249cf7fcf5dd45e15a9e"
 Environment="MAX_RETRIES=5"
 
