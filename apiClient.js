@@ -9,7 +9,8 @@ export const apiClient = {
     const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(7000) // 7s timeout
     });
 
     if (!res.ok) {
