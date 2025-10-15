@@ -19,6 +19,8 @@ export const apiClient = {
   },
 
   async notifyPOS(payload) {
+    return { success: true };
+
     const url = `${CONFIG.POS_API_URL}/printer/acknowledge`;
     logger.info({ url }, "Notificando a POS API");
 
