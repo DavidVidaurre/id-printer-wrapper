@@ -2,7 +2,7 @@
 
 # --- CONFIGURACIÓN QUE USTED DEBE DEFINIR ---
 GIT_REPO="https://github.com/DavidVidaurre/id-printer-wrapper.git" # O la URL de su servidor
-VERSION_TAG="v1.0.7" # La etiqueta de la versión estable
+VERSION_TAG="v1.1.0" # La etiqueta de la versión estable
 SERVICE_NAME="wrapper-amqp"
 INSTALL_DIR="/opt/$SERVICE_NAME"
 # ---------------------------------------------
@@ -14,7 +14,7 @@ if [ "$(id -u)" != "0" ]; then
 fi
 
 echo "=========================================================="
-echo "          Instalador del Wrapper AMQP V$VERSION_TAG        "
+echo "          Instalador del Wrapper AMQP $VERSION_TAG        "
 echo "=========================================================="
 
 # 1. OBTENER EL STORE_ID DEL ARGUMENTO

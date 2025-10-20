@@ -17,7 +17,7 @@ const GLOBAL_CONFIG = {
   
   // Parámetros técnicos que pueden depender del entorno o del tipo de mensaje
   MAX_RETRIES: parseInt(process.env.MAX_RETRIES || "5", 10),
-  PREFETCH: parseInt(process.env.PREFETCH || "5", 10),
+  PREFETCH: parseInt(process.env.PREFETCH || "1", 10),
 };
 
 // Configuración que SÍ CAMBIA por tienda (Tomada del .env del cliente)
