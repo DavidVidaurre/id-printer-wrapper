@@ -28,10 +28,10 @@ export function initAMQP(onMessage) {
         arguments: { "x-delayed-type": "direct" },
       });
 
-      // 3) DLX exchange (fanout) y DLX queue por tienda
-      await channel.assertExchange(CONFIG.DLX_EXCHANGE, "fanout", { durable: true });
+      // 3) DLX exchange (direct) y DLX queue por tienda
+      await channel.assertExchange(CONFIG.DLX_EXCHANGE, "direct", { durable: true });
       await channel.assertQueue(CONFIG.DLX_QUEUE_NAME, { durable: true });
-      await channel.bindQueue(CONFIG.DLX_QUEUE_NAME, CONFIG.DLX_EXCHANGE, "");
+      await channel.bindQueue(CONFIG.DLX_QUEUE_NAME, CONFIG.DLX_EXCHANGE, CONFIG.DLX_QUEUE_NAME);
 
       // 4) Cola principal por tienda
       await channel.assertQueue(CONFIG.QUEUE_NAME, {
@@ -39,6 +39,7 @@ export function initAMQP(onMessage) {
         arguments: {
           // si quieres que la cola automáticamente vaya a DLX cuando expire TTL en la cola:
           "x-dead-letter-exchange": CONFIG.DLX_EXCHANGE,
+          "x-message-ttl": 600000, // opcional: mensajes expiran en 10 minutos (600000 ms)
         },
       });
 
@@ -92,8 +93,8 @@ async function handleRetryOrDLX(channel, content, retries, msg, err) {
     );
   } else {
     logger.error({ err }, "Max retries alcanzados → enviando a DLX");
-    // Publish to DLX exchange; DLX exchange fanout -> DLX queue por tienda recibirá el mensaje
-    channel.publish(CONFIG.DLX_EXCHANGE, "", Buffer.from(JSON.stringify(content)), {
+    // Publish to DLX exchange; DLX exchange direct -> DLX queue por tienda recibirá el mensaje
+    channel.publish(CONFIG.DLX_EXCHANGE, CONFIG.DLX_QUEUE_NAME, Buffer.from(JSON.stringify(content)), {
       persistent: true,
     });
   }
