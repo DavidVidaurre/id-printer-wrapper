@@ -10,7 +10,7 @@ export const apiClient = {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
-      signal: AbortSignal.timeout(7000) // 7s timeout
+      signal: AbortSignal.timeout(15000) // 15s timeout
     });
 
     if (!res.ok) {

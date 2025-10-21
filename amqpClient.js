@@ -77,28 +77,51 @@ export function initAMQP(onMessage) {
 }
 
 async function handleRetryOrDLX(channel, content, retries, msg, err) {
-  if (retries < CONFIG.MAX_RETRIES) {
-    const delay = Math.pow(2, retries) * 5000; // 5s, 10s, 20s...
-    logger.warn({ delay, err }, `Reintentando mensaje (intento #${retries + 1})`);
+  try {
+    if (retries < CONFIG.MAX_RETRIES) {
+      const delay = Math.pow(2, retries) * 5000;
+      logger.warn({ delay, err }, `Reintentando mensaje (intento #${retries + 1})`);
 
-    // Publish to delayed exchange using routing key = queue name
-    channel.publish(
-      CONFIG.RETRY_EXCHANGE,
-      CONFIG.QUEUE_NAME,
-      Buffer.from(JSON.stringify(content)),
-      {
-        headers: { "x-delay": delay, "x-retries": retries + 1 },
-        persistent: true,
+      // PUBLICACIÓN CONFIRMADA del reintento
+      const published = channel.publish(
+        CONFIG.RETRY_EXCHANGE,
+        CONFIG.QUEUE_NAME,
+        Buffer.from(JSON.stringify(content)),
+        {
+          headers: { "x-delay": delay, "x-retries": retries + 1 },
+          persistent: true,
+        }
+      );
+
+      if (published) {
+        logger.debug(`✅ Reintento #${retries + 1} programado correctamente`);
+        channel.ack(msg); // SOLO ACK si el reintento se publicó bien
+      } else {
+        logger.error("❌ Falló la publicación del reintento - NO se hace ACK");
+        channel.nack(msg, false, true); // Requeue el mensaje original
       }
-    );
-  } else {
-    logger.error({ err }, "Max retries alcanzados → enviando a DLX");
-    // Publish to DLX exchange; DLX exchange direct -> DLX queue por tienda recibirá el mensaje
-    channel.publish(CONFIG.DLX_EXCHANGE, CONFIG.DLX_QUEUE_NAME, Buffer.from(JSON.stringify(content)), {
-      persistent: true,
-    });
-  }
 
-  // siempre ackear el mensaje original para evitar duplicados
-  channel.ack(msg);
+    } else {
+      logger.error({ err }, "Max retries alcanzados → enviando a DLX");
+      
+      // PUBLICACIÓN CONFIRMADA a DLX
+      const published = channel.publish(
+        CONFIG.DLX_EXCHANGE, 
+        CONFIG.DLX_QUEUE_NAME, 
+        Buffer.from(JSON.stringify(content)),
+        { persistent: true }
+      );
+
+      if (published) {
+        logger.debug("✅ Mensaje enviado a DLX correctamente");
+        channel.ack(msg);
+      } else {
+        logger.error("❌ Falló publicación a DLX - NO se hace ACK");
+        channel.nack(msg, false, true);
+      }
+    }
+  } catch (publishErr) {
+    logger.error({ err: publishErr }, "Error en handleRetryOrDLX - NO se hace ACK");
+    channel.nack(msg, false, true); // Requeue en caso de error
+  }
 }
