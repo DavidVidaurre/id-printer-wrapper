@@ -1,7 +1,10 @@
-import { apiClient } from "./apiClient.js";
-import { logger } from "./utils.js";
+// import { apiClient } from "./apiClient.js";
+// import { logger } from "./utils.js";
 
-export async function processMessage(job) {
+const { apiClient } = require("./apiClient.js");
+const { logger } = require("./utils.js");
+
+async function processMessage(job) {
   logger.info({ job }, "Procesando mensaje");
 
   try {
@@ -41,3 +44,5 @@ export async function processMessage(job) {
     return { success: false, error: err };
   }
 }
+
+module.exports = { processMessage };

@@ -1,7 +1,10 @@
-import { CONFIG } from "./config.js";
-import { logger } from "./utils.js";
+// import { CONFIG } from "./config.js";
+// import { logger } from "./utils.js";
 
-export const apiClient = {
+const { CONFIG } = require("./config.js");
+const { logger } = require("./utils.js");
+
+const apiClient = {
   async sendToRbService(payload) {
     const url = `${CONFIG.RB_SERVICE_URL}/printer/print`;
     logger.info({ url }, "Llamando rb-service");
@@ -49,3 +52,5 @@ export const apiClient = {
     }
   }
 };
+
+module.exports = { apiClient };

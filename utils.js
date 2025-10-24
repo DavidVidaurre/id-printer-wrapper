@@ -1,6 +1,9 @@
-import pino from "pino";
+// import pino from "pino";
+const pino = require("pino");
 
-export const logger = pino({
+const logger = pino({
   level: "info",
   transport: { target: "pino-pretty" }
 });
+
+module.exports = { logger };

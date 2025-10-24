@@ -1,10 +1,14 @@
-import amqp from "amqp-connection-manager";
-import { CONFIG } from "./config.js";
-import { logger } from "./utils.js";
+// import amqp from "amqp-connection-manager";
+// import { CONFIG } from "./config.js";
+// import { logger } from "./utils.js";
+
+const amqp = require("amqp-connection-manager");
+const { CONFIG } = require("./config.js");
+const { logger } = require("./utils.js");
 
 let channelWrapper;
 
-export function initAMQP(onMessage) {
+function initAMQP(onMessage) {
   logger.info("Conectando a RabbitMQ...");
 
   const connection = amqp.connect([CONFIG.AMQP_URL], {
@@ -125,3 +129,5 @@ async function handleRetryOrDLX(channel, content, retries, msg, err) {
     channel.nack(msg, false, true); // Requeue en caso de error
   }
 }
+
+module.exports = { initAMQP };

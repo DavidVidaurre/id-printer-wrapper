@@ -1,4 +1,5 @@
-import dotenv from "dotenv";
+// import dotenv from "dotenv";
+const dotenv = require("dotenv");
 
 dotenv.config();
 
@@ -21,7 +22,7 @@ const GLOBAL_CONFIG = {
 };
 
 // Configuración que SÍ CAMBIA por tienda (Tomada del .env del cliente)
-export const CONFIG = {
+const CONFIG = {
   ...GLOBAL_CONFIG,
   STORE_ID: process.env.STORE_ID, // ¡ÚNICO valor en el .env!
 };
@@ -41,3 +42,5 @@ if (!CONFIG.AMQP_URL) {
 if (!CONFIG.STORE_ID) {
   throw new Error("❌ Falta STORE_ID en .env");
 }
+
+module.exports = { CONFIG };
