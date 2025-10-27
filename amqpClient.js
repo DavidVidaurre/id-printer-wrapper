@@ -9,20 +9,42 @@ const { logger } = require("./utils.js");
 let channelWrapper;
 
 function initAMQP(onMessage) {
-  logger.info("Conectando a RabbitMQ...");
+  logger.info("Conectando a LavinMQ...");
 
   const connection = amqp.connect([CONFIG.AMQP_URL], {
     reconnectTimeInSeconds: 5,
+    heartbeatIntervalInSeconds: 5,
+    findServers: () => [CONFIG.AMQP_URL], // Asegura que siempre intente reconectar a la URL correcta
   });
 
-  connection.on("connect", () => logger.info("✅ Conectado a RabbitMQ"));
-  connection.on("disconnect", (err) =>
-    logger.error({ err }, "❌ Desconectado de RabbitMQ, reintentando...")
-  );
+  connection.on("connect", () => logger.info("✅ Conectado a LavinMQ"));
+  connection.on("disconnect", (err) => {
+    logger.error({ err: err || "Desconocido" }, "❌ Desconectado de LavinMQ, reintentando...");
+  });
+  connection.on("connectFailed", (err) => {
+    logger.error({ err }, "❌ Falló conexión a LavinMQ, reintentando en 5s...");
+  });
+  connection.on("blocked", (reason) => {
+    logger.warn({ reason }, "⚠️ Conexión bloqueada por LavinMQ");
+  });
+  connection.on("unblocked", () => {
+    logger.info("✅ Conexión desbloqueada por LavinMQ");
+  });
 
   channelWrapper = connection.createChannel({
     json: false,
     setup: async (channel) => {
+      logger.info("Configurando canal AMQP...");
+      
+      // Manejo de errores del canal
+      channel.on("error", (err) => {
+        logger.error({ err }, "❌ Error en canal AMQP");
+      });
+      
+      channel.on("close", () => {
+        logger.warn("⚠️ Canal AMQP cerrado, será recreado automáticamente");
+      });
+
       // 1) Exchange principal (direct)
       await channel.assertExchange(CONFIG.PRINT_EXCHANGE, "direct", { durable: true });
 
@@ -76,8 +98,21 @@ function initAMQP(onMessage) {
           await handleRetryOrDLX(channel, content, retries, msg, err);
         }
       });
+      
+      logger.info("✅ Canal AMQP configurado correctamente");
     },
   });
+
+  // Evento adicional para monitorear el estado del canal
+  channelWrapper.on("error", (err) => {
+    logger.error({ err }, "❌ Error en channelWrapper");
+  });
+
+  channelWrapper.on("close", () => {
+    logger.warn("⚠️ ChannelWrapper cerrado");
+  });
+
+  return connection;
 }
 
 async function handleRetryOrDLX(channel, content, retries, msg, err) {
