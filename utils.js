@@ -6,4 +6,10 @@ const logger = pino({
   transport: { target: "pino-pretty" }
 });
 
-module.exports = { logger };
+const WRAPPER_STATUSES = {
+  CONNECTED: "connected",
+  DISCONNECTED: "disconnected",
+  ERROR: "error"
+};
+
+module.exports = { logger, WRAPPER_STATUSES };
