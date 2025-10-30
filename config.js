@@ -15,6 +15,7 @@ const GLOBAL_CONFIG = {
   POS_API_URL: process.env.POS_API_URL,
   RB_SERVICE_URL: process.env.RB_SERVICE_URL,
   PRINTER_WRAPPER_TOKEN: process.env.PRINTER_WRAPPER_TOKEN,
+  WEBHOOK_URL: process.env.WEBHOOK_URL, // URL para notificar estado del wrapper
   
   // Parámetros técnicos que pueden depender del entorno o del tipo de mensaje
   MAX_RETRIES: parseInt(process.env.MAX_RETRIES || "5", 10),
