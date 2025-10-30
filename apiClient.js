@@ -53,8 +53,8 @@ const apiClient = {
   },
 
   async notifyWrapperStatus(status, details = {}) {
-    if (!CONFIG.WEBHOOK_URL) {
-      logger.debug("WEBHOOK_URL no configurada, saltando notificación de estado");
+    if (!CONFIG.WRAPPER_WEBHOOK_URL) {
+      logger.debug("WRAPPER_WEBHOOK_URL no configurada, saltando notificación de estado");
       return { success: true };
     }
 
@@ -73,7 +73,7 @@ const apiClient = {
     logger.info({ payload }, `Notificando estado del wrapper: ${status}`);
 
     try {
-      const res = await fetch(CONFIG.WEBHOOK_URL, {
+      const res = await fetch(CONFIG.WRAPPER_WEBHOOK_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
