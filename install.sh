@@ -18,13 +18,13 @@ echo "          Instalador del Wrapper AMQP $VERSION_TAG        "
 echo "=========================================================="
 
 # 1. Solicitar STORE_ID y ALIAS de forma interactiva
-read -p "Ingrese el STORE_ID (obligatorio): " STORE_ID
+read -p "Ingrese el STORE_ID (obligatorio): " STORE_ID </dev/tty
 if [ -z "$STORE_ID" ]; then
     echo "❌ El STORE_ID no puede estar vacío. Abortando."
     exit 1
 fi
 
-read -p "Ingrese un ALIAS para esta tienda (ej. Tienda Principal): " STORE_ALIAS
+read -p "Ingrese un ALIAS para esta tienda (ej. Tienda Principal): " STORE_ALIAS </dev/tty
 if [ -z "$STORE_ALIAS" ]; then
     echo "⚠️  No se ingresó un alias, se usará 'SinAlias'."
     STORE_ALIAS="SinAlias"
