@@ -104,7 +104,8 @@ function initAMQP(onMessage) {
         arguments: {
           // si quieres que la cola automáticamente vaya a DLX cuando expire TTL en la cola:
           "x-dead-letter-exchange": CONFIG.DLX_EXCHANGE,
-          "x-message-ttl": 600000, // opcional: mensajes expiran en 10 minutos (600000 ms)
+          "x-message-ttl": 600000, // opcional: mensajes expiran en 10 minutos (600000 ms),
+          "x-store-alias": CONFIG.STORE_ALIAS || "",
         },
       });
 

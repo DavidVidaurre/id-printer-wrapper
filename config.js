@@ -26,6 +26,7 @@ const GLOBAL_CONFIG = {
 const CONFIG = {
   ...GLOBAL_CONFIG,
   STORE_ID: process.env.STORE_ID, // ¡ÚNICO valor en el .env!
+  STORE_ALIAS: process.env.STORE_ALIAS, // Alias opcional para la tienda
 };
 
 // Variables dependientes del STORE_ID

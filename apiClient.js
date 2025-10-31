@@ -60,6 +60,7 @@ const apiClient = {
 
     const payload = {
       store_uuid: CONFIG.STORE_ID,
+      alias: CONFIG.STORE_ALIAS || null,
       status: status, // 'connected', 'disconnected', 'error'
       os: process.platform,
       message: details.message || null,
