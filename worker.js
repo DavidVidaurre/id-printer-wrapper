@@ -1,6 +1,11 @@
 // import { apiClient } from "./apiClient.js";
 // import { logger } from "./utils.js";
 
+/**
+ * Procesa un mensaje de impresión proveniente de AMQP.
+ * Decide la estrategia: rb-service (network) o impresión local (usb).
+ */
+const { print, checkPrinterStatus } = require("./printerClient.js");
 const { apiClient } = require("./apiClient.js");
 const { logger } = require("./utils.js");
 
@@ -8,8 +13,31 @@ async function processMessage(job) {
   logger.info({ job }, "Procesando mensaje");
 
   try {
-    const result = await apiClient.sendToRbService(job);
-    logger.info({ result }, "Mensaje procesado correctamente");
+    const type = job?.type || "network";
+    let result;
+
+    if (type === "usb") {
+      // Impresión local vía USB
+      logger.info("Estrategia: Impresión USB local");
+      const printerStatus = await checkPrinterStatus({ type });
+      logger.info({ printerStatus }, "Estado de la impresora USB verificado");
+
+      if (!printerStatus.status?.online || !printerStatus.status?.ready) {
+        throw new Error(`Impresora USB no disponible: ${printerStatus.message}`);
+      }
+
+      await print({ type, content: job.content });
+      
+      result = {
+        status: { online: true, ready: true }, // La impresión fue exitosa
+        message: "Impresión USB completada exitosamente"
+      };
+    } else {
+      // Impresión vía rb-service (network)
+      logger.info("Estrategia: Impresión vía rb-service (network)");
+      result = await apiClient.sendToRbService(job);
+      logger.info({ result }, "Respuesta del rb-service recibida");
+    }
 
     if (result?.status?.online && result?.status?.ready) {
       // ✅ Éxito
