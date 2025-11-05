@@ -1,4 +1,3 @@
-// import pino from "pino";
 const pino = require("pino");
 
 const logger = pino({

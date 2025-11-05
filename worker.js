@@ -1,6 +1,3 @@
-// import { apiClient } from "./apiClient.js";
-// import { logger } from "./utils.js";
-
 /**
  * Procesa un mensaje de impresión proveniente de AMQP.
  * Decide la estrategia: rb-service (network) o impresión local (usb).

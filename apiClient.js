@@ -1,6 +1,3 @@
-// import { CONFIG } from "./config.js";
-// import { logger } from "./utils.js";
-
 const { CONFIG } = require("./config.js");
 const { logger } = require("./utils.js");
 

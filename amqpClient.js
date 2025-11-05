@@ -1,7 +1,3 @@
-// import amqp from "amqp-connection-manager";
-// import { CONFIG } from "./config.js";
-// import { logger } from "./utils.js";
-
 const amqp = require("amqp-connection-manager");
 const { CONFIG } = require("./config.js");
 const { logger, WRAPPER_STATUSES } = require("./utils.js");
@@ -102,7 +98,7 @@ function initAMQP(onMessage) {
       await channel.assertQueue(CONFIG.QUEUE_NAME, {
         durable: true,
         arguments: {
-          // si quieres que la cola automáticamente vaya a DLX cuando expire TTL en la cola:
+          // Paras que la cola automáticamente vaya a DLX cuando expire TTL en la cola:
           "x-dead-letter-exchange": CONFIG.DLX_EXCHANGE,
           "x-message-ttl": 600000, // opcional: mensajes expiran en 10 minutos (600000 ms),
           "x-store-alias": CONFIG.STORE_ALIAS || "",
