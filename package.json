@@ -7,7 +7,8 @@
     "assets": [
       "config/**/*",
       ".env.example",
-      "node_modules/thread-stream/lib/worker.js"
+      "node_modules/thread-stream/lib/worker.js",
+      "node_modules/usb/prebuilds/**/*.node"
     ],
     "targets": [
       "node18-win-x64"
