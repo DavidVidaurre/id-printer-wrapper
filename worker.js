@@ -10,7 +10,8 @@ async function processMessage(job) {
   logger.info({ job }, "Procesando mensaje");
 
   try {
-    const type = job?.type || "network";
+    // const type = job?.type || "network";
+    const type = job?.host === "usb" ? "usb" : "network";
     let result;
 
     if (type === "usb") {
