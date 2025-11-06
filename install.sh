@@ -2,7 +2,7 @@
 
 # --- CONFIGURACIÓN BÁSICA ---
 GIT_REPO="https://github.com/DavidVidaurre/id-printer-wrapper.git"
-VERSION_TAG="v1.4.1" # La etiqueta de la versión estable
+VERSION_TAG="v1.5.0" # La etiqueta de la versión estable
 SERVICE_NAME="wrapper-amqp"
 INSTALL_DIR="/opt/$SERVICE_NAME"
 # ---------------------------------------------
