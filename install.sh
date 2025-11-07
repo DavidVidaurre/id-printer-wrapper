@@ -30,10 +30,14 @@ if [ -z "$STORE_ALIAS" ]; then
     STORE_ALIAS="SinAlias"
 fi
 
-# 2. Verificar e instalar dependencias básicas (git, nodejs, npm)
-echo "Verificando e instalando dependencias (Node.js, git)..."
+# 2. Verificar e instalar dependencias básicas (git, nodejs, npm, build tools)
+echo "Verificando e instalando dependencias del sistema..."
 apt update
 apt install -y nodejs npm git unzip
+
+# Instalar herramientas de compilación y librerías necesarias para módulos nativos USB
+echo "Instalando dependencias para compilar módulos nativos USB..."
+apt install -y build-essential libudev-dev libusb-1.0-0-dev python3
 
 # 3. Descargar el proyecto desde el repositorio
 echo "Descargando el proyecto desde $GIT_REPO..."
@@ -50,7 +54,11 @@ fi
 # 4. Instalar dependencias de Node
 echo "Instalando dependencias de Node.js..."
 cd $INSTALL_DIR
-npm install
+npm install --build-from-source
+if [ $? -ne 0 ]; then
+    echo "❌ Error al instalar dependencias de Node.js. Verifique los logs arriba."
+    exit 1
+fi
 
 # 5. CREA EL ARCHIVO .ENV CON EL STORE_ID Y STORE_ALIAS
 echo "Creando archivo .env con STORE_ID: $STORE_ID y STORE_ALIAS: $STORE_ALIAS"
