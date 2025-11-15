@@ -1,4 +1,5 @@
 const { CONFIG } = require("./config.js");
+const { errorTranslator } = require("./errorTranslator.js");
 const { logger } = require("./utils.js");
 
 const apiClient = {
@@ -6,52 +7,26 @@ const apiClient = {
     const url = `${CONFIG.RB_SERVICE_URL}/printer/print`;
     logger.info({ url }, "Llamando rb-service");
 
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-      signal: AbortSignal.timeout(15000) // 15s timeout
-    });
-
-    if (!res.ok) {
-      throw new Error(`rb-service error ${res.status}`);
-    }
-    return await res.json();
-  },
-
-  async notifyPOS(payload) {
-    return { success: true };
-
-    const url = `${CONFIG.POS_API_URL}/printer/acknowledge`;
-    logger.info({ url }, "Notificando a POS API");
-
     try {
       const res = await fetch(url, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${CONFIG.PRINTER_WRAPPER_TOKEN}`
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
+      const result = await res.json();
+      logger.info({ result }, "Respuesta del rb-service");
 
-      const data = await res.json().catch(() => ({}));
-
-      if (!res.ok) {
-        logger.error({ status: res.status, data }, "POS API devolvió error");
-        return { success: false, status: res.status, data };
-      }
-
-      return { success: true, data };
+      return result;
     } catch (err) {
-      logger.error({ err }, "Error técnico notificando POS API");
-      return { success: false, error: err.message };
+      const translated  = errorTranslator(err);
+      logger.error({ err: translated }, "Error técnico llamando rb-service");
+      throw translated;
     }
   },
 
   async notifyWrapperStatus(status, details = {}) {
-    if (!CONFIG.WRAPPER_WEBHOOK_URL) {
-      logger.debug("WRAPPER_WEBHOOK_URL no configurada, saltando notificación de estado");
+    if (!CONFIG.API_WEBHOOK_URL) {
+      logger.debug("API_WEBHOOK_URL no configurada, saltando notificación de estado");
       return { success: true };
     }
 
@@ -71,7 +46,7 @@ const apiClient = {
     logger.info({ payload }, `Notificando estado del wrapper: ${status}`);
 
     try {
-      const res = await fetch(CONFIG.WRAPPER_WEBHOOK_URL, {
+      const res = await fetch(`${CONFIG.API_WEBHOOK_URL}/v1/webhook/wrapper/status`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
