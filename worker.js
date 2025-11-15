@@ -5,19 +5,26 @@
 const { print, checkPrinterStatus } = require("./printerClient.js");
 const { apiClient } = require("./apiClient.js");
 const { logger } = require("./utils.js");
+const { notifyPrintJobStatus, PRINT_JOB_STATUSES } = require("./webhookClient.js");
 
-async function processMessage(job) {
-  logger.info({ job }, "Procesando mensaje");
+async function processMessage(job, retryCount = 0) {
+  const printJobId = job.print_job_uuid;
+  
+  if (!printJobId) {
+    logger.error({ job }, "❌ Mensaje sin print_job_uuid, ignorando");
+    return { success: false, error: new Error("Missing print_job_uuid") };
+  }
+  
+  logger.info({ printJobId, job, retryCount }, "📥 Procesando mensaje");
 
   try {
     const type = job?.type || "network";
     let result;
 
     if (type === "usb") {
-      // Impresión local vía USB
-      logger.info("Estrategia: Impresión USB local");
+      logger.info({ printJobId }, "Estrategia: Impresión USB local");
       const printerStatus = await checkPrinterStatus({ type });
-      logger.info({ printerStatus }, "Estado de la impresora USB verificado");
+      logger.info({ printJobId, printerStatus }, "Estado de la impresora USB verificado");
 
       if (!printerStatus.status?.online || !printerStatus.status?.ready) {
         throw new Error(`Impresora USB no disponible: ${printerStatus.message}`);
@@ -26,47 +33,48 @@ async function processMessage(job) {
       await print({ type, content: job.content });
       
       result = {
-        status: { online: true, ready: true }, // La impresión fue exitosa
+        status: { online: true, ready: true },
         message: "Impresión USB completada exitosamente"
       };
     } else {
-      // Impresión vía rb-service (network)
-      logger.info("Estrategia: Impresión vía rb-service (network)");
+      logger.info({ printJobId }, "Estrategia: Impresión vía rb-service (network)");
       result = await apiClient.sendToRbService(job);
-      logger.info({ result }, "Respuesta del rb-service recibida");
+      logger.info({ printJobId, result }, "Respuesta del rb-service recibida");
     }
 
     if (result?.status?.online && result?.status?.ready) {
-      // ✅ Éxito
-      await apiClient.notifyPOS({
-        jobId: job.orderId,
-        status: "SUCCESS",
-        message: result.message || "Impresión exitosa",
+      await notifyPrintJobStatus({
+        printJobId,
+        status: PRINT_JOB_STATUSES.SUCCESS,
+        attemptNumber: retryCount + 1,
       });
-      logger.info("POS notificado del éxito");
-      return { success: true };
+      
+      logger.info({ printJobId }, "✅ Impresión exitosa");
+      return { success: true, printJobId };
     } else {
-      // ⚠️ Fallo lógico
       const errorMsg = result?.message || "Impresora no disponible";
-      await apiClient.notifyPOS({
-        jobId: job.orderId,
-        status: "FAILED",
-        error: errorMsg,
+      
+      await notifyPrintJobStatus({
+        printJobId,
+        status: PRINT_JOB_STATUSES.FAILED,
+        attemptNumber: retryCount + 1,
+        error: new Error(errorMsg)
       });
-      logger.warn({ errorMsg }, "POS notificado del fallo lógico");
-      return { success: false, error: new Error(errorMsg) };
+      
+      logger.warn({ printJobId, errorMsg }, "⚠️ Fallo lógico de impresión");
+      return { success: false, error: new Error(errorMsg), printJobId };
     }
   } catch (err) {
-    // ⚠️ Error técnico (rb-service caído, red, etc.)
-    logger.error({ err }, "Error enviando a rb-service, notificando POS");
-    try {
-      await apiClient.notifyPOS({ jobId: job.orderId, status: "FAILED", error: err.message });
-      logger.info("POS notificado del fallo técnico");
-    } catch (errPOS) {
-      logger.error({ errPOS }, "Error notificando al POS");
-    }
+    logger.error({ printJobId, err }, "❌ Error técnico procesando impresión");
+    
+    await notifyPrintJobStatus({
+      printJobId,
+      status: PRINT_JOB_STATUSES.FAILED,
+      attemptNumber: retryCount + 1,
+      error: err
+    });
 
-    return { success: false, error: err };
+    return { success: false, error: err, printJobId };
   }
 }
 
