@@ -2,30 +2,25 @@ const dotenv = require("dotenv");
 
 dotenv.config();
 
-// Configuración que NO CAMBIA por tienda (Hardcodeada o inyectada por el script/systemd)
 const GLOBAL_CONFIG = {
-  // Estos valores serán pasados como variables de entorno al servicio systemd,
-  // NO desde el .env del cliente.
   AMQP_URL: process.env.AMQP_URL, 
-  QUEUE_PREFIX: "print_records.queue", // Fijo
-  PRINT_EXCHANGE: "print_records", // Fijo
-  DLX_EXCHANGE: "print_records.dlx", // Fijo
-  RETRY_EXCHANGE: "print_records.retry", // Fijo
+  QUEUE_PREFIX: "print_records.queue",
+  PRINT_EXCHANGE: "print_records",
+  DLX_EXCHANGE: "print_records.dlx",
+  RETRY_EXCHANGE: "print_records.retry",
   POS_API_URL: process.env.POS_API_URL,
   RB_SERVICE_URL: process.env.RB_SERVICE_URL,
   PRINTER_WRAPPER_TOKEN: process.env.PRINTER_WRAPPER_TOKEN,
-  WRAPPER_WEBHOOK_URL: process.env.WRAPPER_WEBHOOK_URL, // URL para notificar estado del wrapper
+  API_WEBHOOK_URL: process.env.API_WEBHOOK_URL,
   
-  // Parámetros técnicos que pueden depender del entorno o del tipo de mensaje
   MAX_RETRIES: parseInt(process.env.MAX_RETRIES || "5", 10),
   PREFETCH: parseInt(process.env.PREFETCH || "1", 10),
 };
 
-// Configuración que SÍ CAMBIA por tienda (Tomada del .env del cliente)
 const CONFIG = {
   ...GLOBAL_CONFIG,
-  STORE_ID: process.env.STORE_ID, // ¡ÚNICO valor en el .env!
-  STORE_ALIAS: process.env.STORE_ALIAS, // Alias opcional para la tienda
+  STORE_ID: process.env.STORE_ID,
+  STORE_ALIAS: process.env.STORE_ALIAS,
 };
 
 // Variables dependientes del STORE_ID
