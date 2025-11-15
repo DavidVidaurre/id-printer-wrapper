@@ -1,10 +1,8 @@
 const amqp = require("amqp-connection-manager");
 const { CONFIG } = require("./config.js");
-const { logger, WRAPPER_STATUSES } = require("./utils.js");
-const { apiClient } = require("./apiClient.js");
+const { logger } = require("./utils.js");
 
 let channelWrapper;
-let lastConnectionStatus = null; // Estado previo de la conexión
 
 function initAMQP(onMessage) {
   logger.info("Conectando a LavinMQ...");
@@ -12,52 +10,18 @@ function initAMQP(onMessage) {
   const connection = amqp.connect([CONFIG.AMQP_URL], {
     reconnectTimeInSeconds: 5,
     heartbeatIntervalInSeconds: 5,
-    findServers: () => [CONFIG.AMQP_URL], // Asegura que siempre intente reconectar a la URL correcta
+    findServers: () => [CONFIG.AMQP_URL], // Acá puedo mandar más URLs (caso cuando se cayó POSSUM)
   });
 
   connection.on("connect", () => {
-    if (lastConnectionStatus !== WRAPPER_STATUSES.CONNECTED) {
-      logger.info("✅ Conectado a LavinMQ");
-      lastConnectionStatus = WRAPPER_STATUSES.CONNECTED;
-
-      // Notificar webhook que el wrapper se conectó
-      apiClient.notifyWrapperStatus(WRAPPER_STATUSES.CONNECTED, {
-        message: "Wrapper conectado exitosamente a LavinMQ"
-      }).catch(err => {
-        logger.error({ err }, "Error notificando conexión al webhook");
-      });
-    }
+    logger.info("✅ Conectado a LavinMQ");
   });
   
   connection.on("disconnect", (err) => {
-    if (lastConnectionStatus !== WRAPPER_STATUSES.DISCONNECTED) {
-      logger.error({ err: err || "Desconocido" }, "❌ Desconectado de LavinMQ, reintentando...");
-      lastConnectionStatus = WRAPPER_STATUSES.DISCONNECTED;
-
-      // Notificar webhook que el wrapper se desconectó
-      apiClient.notifyWrapperStatus(WRAPPER_STATUSES.DISCONNECTED, {
-        message: "Wrapper desconectado de LavinMQ",
-        error: err?.message || "Desconocido",
-        reconnecting: true
-      }).catch(notifyErr => {
-        logger.error({ notifyErr }, "Error notificando desconexión al webhook");
-      });
-    }
+    logger.error({ err: err || "Desconocido" }, "❌ Desconectado de LavinMQ, reintentando...");
   });
   connection.on("connectFailed", (err) => {
-    if (lastConnectionStatus !== WRAPPER_STATUSES.ERROR) {
-      logger.error({ err }, "❌ Falló conexión a LavinMQ, reintentando en 5s...");
-      lastConnectionStatus = WRAPPER_STATUSES.ERROR;
-
-      // Notificar webhook que falló la conexión
-      apiClient.notifyWrapperStatus(WRAPPER_STATUSES.ERROR, {
-        message: "Falló la conexión inicial a LavinMQ",
-        error: err?.message || "Error desconocido",
-        retrying: true
-      }).catch(notifyErr => {
-        logger.error({ notifyErr }, "Error notificando fallo de conexión al webhook");
-      });
-    }
+    logger.error({ err }, "❌ Falló conexión a LavinMQ, reintentando en 5s...");
   });
   connection.on("blocked", (reason) => {
     logger.warn({ reason }, "⚠️ Conexión bloqueada por LavinMQ");
@@ -122,7 +86,7 @@ function initAMQP(onMessage) {
         const retries = (msg.properties.headers && msg.properties.headers["x-retries"]) || 0;
 
         try {
-          const result = await onMessage(content);
+          const result = await onMessage(content, retries);
 
           if (result.success) {
             channel.ack(msg);
